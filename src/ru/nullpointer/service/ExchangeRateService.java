@@ -30,16 +30,20 @@ public class ExchangeRateService {
         return new DecimalFormat("#.####", symbols);
     });
 
+    private ThreadLocal<Unmarshaller> unmarshaller = ThreadLocal.withInitial(() -> {
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(CBResponse.class);
+            return jaxbContext.createUnmarshaller();
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
+    });
     private CloseableHttpClient httpClient;
-    private Unmarshaller unmarshaller;
 
     @PostConstruct
     public void init() throws JAXBException {
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
         httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
-
-        JAXBContext jaxbContext = JAXBContext.newInstance(CBResponse.class);
-        unmarshaller = jaxbContext.createUnmarshaller();
     }
 
     @PreDestroy
@@ -65,11 +69,11 @@ public class ExchangeRateService {
 
     public Double processCBResponse(InputStream inputStream, String code)
                                     throws JAXBException, ParseException, IOException, ClientException {
-        CBResponse response = (CBResponse) unmarshaller.unmarshal(new StreamSource(inputStream));
+        CBResponse response = (CBResponse) unmarshaller.get().unmarshal(new StreamSource(inputStream));
         if (response.getValutes() == null)  throw new ClientException("No exchange rates for this date");
         for (CBResponse.Valute valute : response.getValutes()) {
             if (valute.getCharCode().equals(code)) {
-                return NUMBER_FORMAT.get().parse(valute.getValue()).doubleValue();
+                return NUMBER_FORMAT.get().parse(valute.getValue()).doubleValue() / valute.getNominal();
             }
         }
         throw new ClientException("Unknown currency code: " + code);

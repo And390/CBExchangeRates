@@ -13,6 +13,8 @@ public class CBResponse {
 
         private String value;
 
+        private int nominal;
+
         public String getCharCode() {
             return charCode;
         }
@@ -29,6 +31,15 @@ public class CBResponse {
         @XmlElement(name = "Value")
         public void setValue(String value) {
             this.value = value;
+        }
+
+        public int getNominal() {
+            return nominal;
+        }
+
+        @XmlElement(name = "Nominal")
+        public void setNominal(int nominal) {
+            this.nominal = nominal;
         }
     }
 

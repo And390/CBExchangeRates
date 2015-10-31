@@ -29,7 +29,15 @@ public class TestExchangeRateService {
     public void testParseCBResponse() throws JAXBException, IOException, ParseException, ClientException {
         try (InputStream input = new FileInputStream("test/XML_daily.xml")) {
             Double result = service.processCBResponse(input, "USD");
-            assertEquals(result, 61.1535, 0.0);
+            assertEquals(61.1535, result, 0.0);
+        }
+    }
+
+    @Test
+    public void testParseCBResponseWithNominal() throws JAXBException, IOException, ParseException, ClientException {
+        try (InputStream input = new FileInputStream("test/XML_daily.xml")) {
+            Double result = service.processCBResponse(input, "JPY");
+            assertEquals(0.508828, result, 0.00001);
         }
     }
 
